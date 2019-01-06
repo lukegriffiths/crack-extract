@@ -16,7 +16,7 @@ rcParams['font.size'] = '8'
 rcParams['legend.numpoints'] = 1
 
 """ Import and skeletonise image """
-filename = './output/img11.png'
+filename = './output/img11.jpg'
 img = cv2.imread(filename, 0)  # Load crack image
 
 # img = np.uint8( scipy.misc.imread(filename, flatten = True) )
@@ -38,9 +38,8 @@ plt.show()
 """ Build Grids """
 large_gridsize_mm = 1  # Large grid size in mm
 small_gridsize_mm = 0.1  # Fine grid size in mm
-small_gridsize = np.ceil(small_gridsize_mm * res)  # Number of pixels to cover small grid element
-large_gridsize = np.ceil(
-    small_gridsize * large_gridsize_mm / small_gridsize_mm)  # Number of pixels to cover large grid element
+small_gridsize = np.ceil(small_gridsize_mm * res).astype(int)  # Number of pixels to cover small grid element
+large_gridsize = np.ceil(small_gridsize * large_gridsize_mm / small_gridsize_mm).astype(int)  # Number of pixels to cover large grid element
 grid_hor = np.uint8(np.zeros(img.shape))  # Create table same size as image
 grid_ver = np.uint8(np.zeros(img.shape))
 grid_hor[::small_gridsize, :] = 255  # Set horizontal lines white
@@ -112,13 +111,14 @@ print('Calculated D0 from Sv = ' + str(Sv * np.pi ** 2 * average_length / 32.))
 print('Calculated D0 from Na = ' + str(Na * (average_length / 2) ** 2 * np.pi / 2))
 
 """ Calculate crack properties in patches """
+large_gridsize_height_pixels = np.ceil(img_height / large_gridsize).astype(int)
+large_gridsize_width_pixels = np.ceil(img_width / large_gridsize).astype(int)
 
-crack_density = np.zeros(
-    [np.ceil(img_height / large_gridsize), np.ceil(img_width / large_gridsize)])  # Nb. of elements = nb. of patches
-crack_length = np.zeros([np.ceil(img_height / large_gridsize), np.ceil(img_width / large_gridsize)])
-Na = np.zeros([np.ceil(img_height / large_gridsize), np.ceil(img_width / large_gridsize)])
-PI = np.zeros([np.ceil(img_height / large_gridsize), np.ceil(img_width / large_gridsize)])
-PII = np.zeros([np.ceil(img_height / large_gridsize), np.ceil(img_width / large_gridsize)])
+crack_density = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
+crack_length = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
+Na = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
+PI = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
+PII = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
 
 """ Compare image and grid """
 for i in range(crack_density.shape[0]):
