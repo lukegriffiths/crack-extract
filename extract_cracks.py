@@ -170,19 +170,20 @@ def RDP(img, angle):
             padded_crack[padded_crack != i + 1] = 0  # Remove other cracks in slice
             endpoints = endPoints(padded_crack)  # Find end points
             ep = np.column_stack(np.where(endpoints > 0))  # Find coordinates of end points
-            if ep.size > 0:
+            if ep.size > 1: # if there are at least 2 end points
                 line_length = np.sqrt(
                     (ep[0, 0] - ep[1, 0]) ** 2 + (ep[0, 1] - ep[1, 1]) ** 2)  # Calculate length of approx. line
                 crack_coords = np.column_stack(np.where(padded_crack > 0))  # Find coordinates of crack
                 distance = np.abs(
                     (ep[1, 1] - ep[0, 1]) * crack_coords[:, 0] - (ep[1, 0] - ep[0, 0]) * crack_coords[:, 1] + ep[1, 0] *
                     ep[0, 1] - ep[1, 1] * ep[0, 0]) / line_length
-                if line_length / np.max(distance) <= criticalRatio:
-                    bp_coords = crack_coords[np.argmax(distance),
-                                :] - 1  # New branch point coords. -1 because crack coords is for padded array
-                    bp = np.zeros_like(img[slices[i]])
-                    bp[bp_coords[0], bp_coords[1]] = 255
-                    new_bp[slices[i]] = bp
+                if np.max(distance) > 0:
+                    if line_length / np.max(distance) <= criticalRatio:
+                        bp_coords = crack_coords[np.argmax(distance),
+                                    :] - 1  # New branch point coords. -1 because crack coords is for padded array
+                        bp = np.zeros_like(img[slices[i]])
+                        bp[bp_coords[0], bp_coords[1]] = 255
+                        new_bp[slices[i]] = bp
         img[new_bp > 0] = 0
     return img
 
@@ -291,7 +292,7 @@ def processImage(filename):
 """ Run program """
 
 # image file path
-filename = '../input/GGGIntact2_orig.png'
+filename = './input/GGGIntact2_orig.png'
 
 # process image
 final = processImage(filename)
