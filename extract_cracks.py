@@ -308,7 +308,7 @@ img_width = final.shape[1]
 crack_length = orderByCrackLength(final, res)  # Calculate crack lengths
 
 # save image
-mpl.image.imsave('./output/img12.png', crack_length, cmap=cmap)
+mpl.image.imsave('./output/img13.png', crack_length, cmap=cmap)
 crack_length = np.ma.masked_where(crack_length == 0, crack_length)  # Mask background
 
 # plot figure of
