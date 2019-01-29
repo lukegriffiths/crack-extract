@@ -240,10 +240,43 @@ def save_image(img, filepath=None, cmap='gray'):
         img.save(filepath)
 
 
-def processImage(filename, median_filter_size=15, small_object_size=40, fill_small_holes_n_iterations=2, n_prune=15,
+def processImage(filepath, median_filter_size=15, small_object_size=40, fill_small_holes_n_iterations=2, n_prune=15,
                  bg_greyscale=250, crack_greyscale=245):
+    """
+    Function to create extract a binary image pixel-thick cracks from an image of a cracked material.
+
+    For details, see Griffiths et al. (2017) and supplementary materials (provided in ./references folder).
+
+    Griffiths, L., Heap, M.J., Baud, P., Schmittbuhl, J., 2017. Quantification of microcrack characteristics and
+    implications for stiffness and strength of granite. International Journal of Rock Mechanics and Mining Sciences 100,
+    138–150. https://doi.org/10.1016/j.ijrmms.2017.10.013
+
+    Args:
+        filepath (string): path to the image file to be processed
+        median_filter_size (int): width (in pixels) of the square median filter window. the value at the center of the
+        moving window is replaces by the median of the values within the window. This should be set to a value just
+        larger than the crack width.
+        small_object_size (int): connected objects within the image following thresholding, with contained within a
+        square of this size (in pixels) will be removed from the image.
+        fill_small_holes_n_iterations (int): Before skeletonisation of the segmented image, any holes in the segmented
+        cracks must be removed. This value gives the number of times the image will be dilated and eroded, to fill all
+        holes. 2 is often enough.
+        n_prune: Number of times the skeletonised cracks are pruned i.e., end points are removed. This value should be
+        greater than the width of the segmented cracks before skeletonisation, or the median_filter_size, which should
+        be similar.
+        bg_greyscale: The lower boundary of the image mask defined prior to the watershed segmentation. Any pixel with
+        a greyscale value below this value is "background"
+        crack_greyscale: The lower boundary of the image mask defined prior to the watershed segmentation. Any pixel
+        with a greyscale value above this value is "crack".
+
+    Returns:
+        cracks_skeleton_restored (numpy array): Binary image of the skeletonised cracks.
+
+
+    """
+
     # img_orig = np.uint8( scipy.misc.imread(filename, flatten = True) )
-    image = Image.open(filename).convert('L')
+    image = Image.open(filepath).convert('L')
     img_orig = np.uint8(image)
 
     # img = img[2:-2, 2:-2] # Microscope image borders are all same grayscale
@@ -256,8 +289,8 @@ def processImage(filename, median_filter_size=15, small_object_size=40, fill_sma
 
     """ Segmentation """
     markers = np.zeros_like(img_filtered)  # Mark the different regions of the image
-    markers[img_filtered > bg_greyscale] = 1  # Background grayscales
-    markers[img_filtered < crack_greyscale] = 2  # Crack grayscales
+    markers[img_filtered > bg_greyscale] = 1  # Minimum crack grayscales
+    markers[img_filtered < crack_greyscale] = 2  # Maximum crack grayscales
     elevation_map = filters.sobel(img_filtered)  # Edge detection for watershed
     segmented = np.abs(255 - 255 * watershed(elevation_map, markers))  # Watershed segmentation, white on black
 
