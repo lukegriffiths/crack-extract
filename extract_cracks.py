@@ -170,7 +170,7 @@ def RDP(img, angle):
             padded_crack[padded_crack != i + 1] = 0  # Remove other cracks in slice
             endpoints = endPoints(padded_crack)  # Find end points
             ep = np.column_stack(np.where(endpoints > 0))  # Find coordinates of end points
-            if ep.size > 1: # if there are at least 2 end points
+            if ep.size > 1:  # if there are at least 2 end points
                 line_length = np.sqrt(
                     (ep[0, 0] - ep[1, 0]) ** 2 + (ep[0, 1] - ep[1, 1]) ** 2)  # Calculate length of approx. line
                 crack_coords = np.column_stack(np.where(padded_crack > 0))  # Find coordinates of crack
@@ -240,9 +240,9 @@ def save_image(img, filepath=None, cmap='gray'):
         img.save(filepath)
 
 
-def processImage(filename):
+def processImage(filename, median_filter_size=15, small_object_size=40, fill_small_holes_n_iterations=2, n_prune=15,
+                 bg_greyscale=250, crack_greyscale=245):
     # img_orig = np.uint8( scipy.misc.imread(filename, flatten = True) )
-
     image = Image.open(filename).convert('L')
     img_orig = np.uint8(image)
 
@@ -251,99 +251,45 @@ def processImage(filename):
 
     """ Filter image """
     img = (255 - img_orig)  # Switch grayscale
-    img_median = ndi.median_filter(img, 15)  # Median filter, good at conserving edges
+    img_median = ndi.median_filter(img, median_filter_size)  # Median filter, good at conserving edges
     img_filtered = (255 - cv2.subtract(img, img_median))  # Subtract filtered image from original (cracks = white)
 
     """ Segmentation """
     markers = np.zeros_like(img_filtered)  # Mark the different regions of the image
-    markers[img_filtered > 250] = 1  # Background grayscales
-    markers[img_filtered < 245] = 2  # Crack grayscales
+    markers[img_filtered > bg_greyscale] = 1  # Background grayscales
+    markers[img_filtered < crack_greyscale] = 2  # Crack grayscales
     elevation_map = filters.sobel(img_filtered)  # Edge detection for watershed
-    segmented = 255 - 255 * watershed(elevation_map, markers)  # Watershed segmentation, white on black
+    segmented = np.abs(255 - 255 * watershed(elevation_map, markers))  # Watershed segmentation, white on black
 
     """ Thin, prune and label cracks """
-    cracks = removeSmallObjects(segmented, 40)  # Remove small objects
-    cracks = fillSmallHoles(cracks, 2)  # Fill small holes in cracks
+    cracks = removeSmallObjects(segmented, small_object_size)  # Remove small objects
+    cracks = fillSmallHoles(cracks, fill_small_holes_n_iterations)  # Fill small holes in cracks
     cracks = binary_dilation(cracks)  # Dilate before thinning
     cracks_skeleton = 255 * np.int8(mh.thin(cracks > 0))  # Skeletonise image
-    cracks_skeleton_pruned = removeEndPoints(cracks_skeleton, 15)  # Remove skeletonisation artefacts
+    cracks_skeleton_pruned = removeEndPoints(cracks_skeleton, n_prune)  # Remove skeletonisation artefacts
     cracks_skeleton_pruned_no_bp = removeBranchPoints(cracks_skeleton_pruned)  # Remove branch points to separate cracks
     cracks_skeleton_pruned_no_bp_2_ep = removeEndPointsIter(
         cracks_skeleton_pruned_no_bp)  # Remove end points until 2 per crack
     cracks_skeleton_restored = restoreBranches(cracks_skeleton_pruned_no_bp_2_ep,
                                                cracks_skeleton)  # Restore branches without creating new endpoints
 
-    """ Save images """
+    # Plot images
+    plt.figure()
+    plt.imshow(elevation_map)
+    plt.show()
+
+    # Save images
     save_image.counter = 0
     save_image(img_orig)
     save_image(255 - img_median)
     save_image(255 - img_filtered)
-    save_image(elevation_map)
-    save_image(segmented)
-    save_image(cracks)
-    save_image(cracks_skeleton)
-    save_image(cracks_skeleton_pruned)
-    save_image(cracks_skeleton_pruned_no_bp)
+    save_image(255 * elevation_map / np.max(elevation_map))
+    save_image(255 * segmented / np.max(segmented))
+    save_image(255 * cracks / np.max(cracks))
+    save_image(255 * cracks_skeleton / np.max(cracks_skeleton))
+    save_image(255 * cracks_skeleton_pruned / np.max(cracks_skeleton_pruned))
+    save_image(255 * cracks_skeleton_pruned_no_bp / np.max(cracks_skeleton_pruned_no_bp))
     save_image(cracks_skeleton_pruned_no_bp_2_ep)
     save_image(cracks_skeleton_restored)
 
     return cracks_skeleton_restored
-
-""" Run program """
-
-# image file path
-filename = './input/GGGIntact2_orig.png'
-
-# process image
-final = processImage(filename)
-
-# Resolution of image in pixels per mm
-res = np.floor(1000 * 261. / 526)
-# image height in pixels
-img_height = final.shape[0]
-# image width in pixels
-img_width = final.shape[1]
-
-# calculate and order by crack length
-crack_length = orderByCrackLength(final, res)  # Calculate crack lengths
-
-# save image
-mpl.image.imsave('./output/img13.png', crack_length, cmap=cmap)
-crack_length = np.ma.masked_where(crack_length == 0, crack_length)  # Mask background
-
-# plot figure of
-fig = plt.figure(figsize=(8 / 2.54, 8 / 2.54))  # Show image
-res = np.floor(1000 * 261. / 526)  # Pixels per mm
-ax = plt.imshow(crack_length, extent=[0, img_width / res, 0, img_height / res], cmap=cmap)  # Show image
-plt.xlabel('mm')
-plt.ylabel('mm')
-cb = plt.colorbar(ax, orientation='horizontal')
-cb.set_label('Crack length (mm)')
-plt.tight_layout()
-plt.savefig('./output/crack_length.png', dpi=600)
-plt.show()
-
-# Image and average deviation angle
-cut = RDP(final, 70)
-
-# Calculate crack lengths
-crack_length_cut = orderByCrackLength(cut, res)
-#  Mask background
-crack_length_cut = np.ma.masked_where(crack_length_cut == 0, crack_length_cut)
-
-#mpl.image.imsave('img13.png', crack_length_cut, cmap=cmap)
-save_image(crack_length_cut, cmap=cmap)
-
-# make figure showing crack lengths
-fig = plt.figure(figsize=(8 / 2.54, 8 / 2.54))  # Show image
-res = np.floor(1000 * 261. / 526)  # Pixels per mm
-img_height = crack_length_cut.shape[0]
-img_width = crack_length_cut.shape[1]
-ax = plt.imshow(crack_length_cut, extent=[0, img_width / res, 0, img_height / res], cmap=cmap)  # Show image
-plt.xlabel('mm')
-plt.ylabel('mm')
-cb = plt.colorbar(ax, orientation='horizontal')
-cb.set_label('Crack length (mm)')
-plt.tight_layout()
-plt.savefig('./output/crack_length_cut.png', dpi=600)
-plt.show()
