@@ -278,7 +278,7 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     # img_orig = np.uint8( scipy.misc.imread(filename, flatten = True) )
     image = Image.open(filepath).convert('L')
     img_orig = np.uint8(image)
-
+    
     # img = img[2:-2, 2:-2] # Microscope image borders are all same grayscale
     # img = img[760:780, 923:977]
 
@@ -287,10 +287,21 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     img_median = ndi.median_filter(img, median_filter_size)  # Median filter, good at conserving edges
     img_filtered = (255 - cv2.subtract(img, img_median))  # Subtract filtered image from original (cracks = white)
 
+    # Plot filtered image
+    plt.figure()
+    plt.imshow(img_filtered)
+    plt.show()
+    
     """ Segmentation """
     markers = np.zeros_like(img_filtered)  # Mark the different regions of the image
     markers[img_filtered > bg_greyscale] = 1  # Minimum crack grayscales
     markers[img_filtered < crack_greyscale] = 2  # Maximum crack grayscales
+    
+    # Plot mask
+    plt.figure()
+    plt.imshow(markers)
+    plt.show()
+    
     elevation_map = filters.sobel(img_filtered)  # Edge detection for watershed
     segmented = np.abs(255 - 255 * watershed(elevation_map, markers))  # Watershed segmentation, white on black
 
@@ -306,16 +317,12 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     cracks_skeleton_restored = restoreBranches(cracks_skeleton_pruned_no_bp_2_ep,
                                                cracks_skeleton)  # Restore branches without creating new endpoints
 
-    # Plot images
-    plt.figure()
-    plt.imshow(elevation_map)
-    plt.show()
-
     # Save images
     save_image.counter = 0
     save_image(img_orig)
     save_image(255 - img_median)
     save_image(255 - img_filtered)
+    
     save_image(255 * elevation_map / np.max(elevation_map))
     save_image(255 * segmented / np.max(segmented))
     save_image(255 * cracks / np.max(cracks))
