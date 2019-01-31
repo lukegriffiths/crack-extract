@@ -286,11 +286,6 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     img = (255 - img_orig)  # Switch grayscale
     img_median = ndi.median_filter(img, median_filter_size)  # Median filter, good at conserving edges
     img_filtered = (255 - cv2.subtract(img, img_median))  # Subtract filtered image from original (cracks = white)
-
-    # Plot filtered image
-    plt.figure()
-    plt.imshow(img_filtered)
-    plt.show()
     
     """ Segmentation """
     markers = np.zeros_like(img_filtered)  # Mark the different regions of the image
