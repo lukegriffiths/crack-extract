@@ -14,11 +14,11 @@ resolution = 1000
 # Process image
 final = extract_cracks.processImage(filepath,
                                     median_filter_size=20,
-                                    small_object_size=30,
+                                    small_object_size=40,
                                     fill_small_holes_n_iterations=3,
                                     n_prune=20,
                                     bg_greyscale=254,
-                                    crack_greyscale=249)
+                                    crack_greyscale=251)
 
 # image height in pixels
 img_height = final.shape[0]
