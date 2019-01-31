@@ -296,10 +296,11 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     markers = np.zeros_like(img_filtered)  # Mark the different regions of the image
     markers[img_filtered > bg_greyscale] = 1  # Minimum crack grayscales
     markers[img_filtered < crack_greyscale] = 2  # Maximum crack grayscales
-    
-    # Plot mask
-    plt.figure()
-    plt.imshow(markers)
+
+    # Plot median filtered image and mask
+    f, ax = plt.subplots(1, 2, sharex=True, sharey=True)
+    ax[0].imshow(img_filtered, cmap='gray')
+    ax[1].imshow(markers, cmap='gray')
     plt.show()
     
     elevation_map = filters.sobel(img_filtered)  # Edge detection for watershed
@@ -317,6 +318,12 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     cracks_skeleton_restored = restoreBranches(cracks_skeleton_pruned_no_bp_2_ep,
                                                cracks_skeleton)  # Restore branches without creating new endpoints
 
+    # Plot original and final image
+    f, ax = plt.subplots(1, 2, sharex=True, sharey=True)
+    ax[0].imshow(img, cmap='gray')
+    ax[1].imshow(cracks_skeleton_restored, cmap='gray')
+    plt.show()
+    
     # Save images
     save_image.counter = 0
     save_image(img_orig)
