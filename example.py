@@ -8,16 +8,17 @@ filepath = './input/example_image.png'
 filepath = './input/B-2.tif'
 
 # Resolution of the image in pixels per mm
-resolution = np.floor(1000 * 261. / 526)
+#resolution = np.floor(1000 * 261. / 526) # resolution of example image
+resolution = 1000
 
 # Process image
 final = extract_cracks.processImage(filepath,
-                                    median_filter_size=15,
+                                    median_filter_size=20,
                                     small_object_size=30,
-                                    fill_small_holes_n_iterations=4,
+                                    fill_small_holes_n_iterations=3,
                                     n_prune=20,
-                                    bg_greyscale=250,
-                                    crack_greyscale=245)
+                                    bg_greyscale=254,
+                                    crack_greyscale=249)
 
 # image height in pixels
 img_height = final.shape[0]
