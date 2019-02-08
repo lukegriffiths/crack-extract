@@ -5,11 +5,9 @@ import matplotlib.pyplot as plt
 
 # Change filepath to use your own image
 filepath = './input/example_image.png'
-filepath = './input/B-2.tif'
 
 # Resolution of the image in pixels per mm
-#resolution = np.floor(1000 * 261. / 526) # resolution of example image
-resolution = 1000
+resolution = np.floor(1000 * 261. / 526)  # resolution of example image
 
 # Process image
 final = extract_cracks.processImage(filepath,
@@ -53,7 +51,6 @@ cb.set_label('Crack length (mm)')
 plt.tight_layout()
 plt.savefig('./output/crack_lengths.png', dpi=600)
 plt.show()
-
 
 # Analyse image of cracks
 Sv, PI, PII, Na, crack_length = count_cracks.calculate_crack_statistics('./output/img11.jpg', resolution=resolution)
