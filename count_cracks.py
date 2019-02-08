@@ -33,16 +33,17 @@ def calculate_gridsize_in_pixels(small_gridsize_mm, large_gridsize_mm, resolutio
 
     return small_gridsize, large_gridsize
 
+
 def make_grid(small_gridsize, large_gridsize, image_shape, resolution):
     """
     Build grids in which to calculate crack length and spatial density
 
-    :param small_gridsize_mm:
+    small_gridsize_mm:
     :param large_gridsize_mm:
     :param resolution:
     :return:
 
-    """    
+    """
     grid_hor = np.uint8(np.zeros(image_shape))  # Create table same size as image
     grid_ver = np.uint8(np.zeros(image_shape))
     grid_hor[::small_gridsize, :] = 255  # Set horizontal lines to white
@@ -59,6 +60,7 @@ def make_grid(small_gridsize, large_gridsize, image_shape, resolution):
     large_grid[large_grid > 0] = 255
 
     return small_grid, large_grid, grid_hor, grid_ver
+
 
 def crack_statistics_in_whole_image(img, grid_hor, grid_ver, area, small_gridsize, img_height, img_width, resolution):
     """
@@ -94,9 +96,9 @@ def crack_statistics_in_whole_image(img, grid_hor, grid_ver, area, small_gridsiz
     average_length = np.mean(length)  # Calculate mean crack length
 
     PI = nb_hor / ((img_width / resolution) * (
-                img_height / small_gridsize))  # nb. of intersections with horizontal / ( nb. of lines * line length )
+            img_height / small_gridsize))  # nb. of intersections with horizontal / ( nb. of lines * line length )
     PII = nb_ver / ((img_height / resolution) * (
-                img_width / small_gridsize))  # nb. of intersections with vertical lines / ( nb. of lines * line length )
+            img_width / small_gridsize))  # nb. of intersections with vertical lines / ( nb. of lines * line length )
     Sv = PI + PII  # Underwood 1980
 
     # Print results
@@ -109,13 +111,16 @@ def crack_statistics_in_whole_image(img, grid_hor, grid_ver, area, small_gridsiz
     print('Calculated D0 from Na = ' + str(Na * (average_length / 2) ** 2 * np.pi / 2))
 
 
-def crack_statistics_in_windows(img, img_height, img_width, large_gridsize, grid_hor, grid_ver, small_gridsize, resolution):
+def crack_statistics_in_windows(img, img_height, img_width, large_gridsize, grid_hor, grid_ver, small_gridsize,
+                                resolution):
     large_gridsize_height_pixels = np.ceil(img_height / large_gridsize).astype(int)
     large_gridsize_width_pixels = np.ceil(img_width / large_gridsize).astype(int)
 
-    crack_density = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels]) # Nb. of elements = nb. of patches
-    crack_length = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels]) # Nb. of elements = nb. of patches
-    Na = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels]) # Nb. of elements = nb. of patches
+    crack_density = np.zeros(
+        [large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
+    crack_length = np.zeros(
+        [large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
+    Na = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
     PI = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
     PII = np.zeros([large_gridsize_height_pixels, large_gridsize_width_pixels])  # Nb. of elements = nb. of patches
 
@@ -169,7 +174,20 @@ def crack_statistics_in_windows(img, img_height, img_width, large_gridsize, grid
 
 
 def calculate_crack_statistics(filepath, resolution, large_gridsize_mm=1, small_gridsize_mm=0.1):
+    """
+    Args:
+    filepath (string): filepath of binary image containing pixel-width cracks
+    resolution (int): resolution of image in pixels per mm
+    large_gridsize_mm (float): size of large grid in mm (grid within which image statistics are calculated)
+    small_gridsize_mm (float): size of small grid in mm (grid with which intersections with cracks are counted)
 
+    Returns:
+    Sv (NumPy array): crack surface per unit volume (see Underwood (1979)) = PI + PII
+    PI (NumPy array): number of line intersections of cracks in horizontal direction per mm
+    PII (NumPy array): number of line intersections of cracks in vertical direction per mm
+    Na (NumPy array): Number of cracks per unit area (mm x mm)
+    crack_length (NumPy array): average crack length
+    """
     # Load skeletonised crack image
     img = cv2.imread(filepath, 0)
 
@@ -195,13 +213,12 @@ def calculate_crack_statistics(filepath, resolution, large_gridsize_mm=1, small_
     crack_statistics_in_whole_image(img, grid_hor, grid_ver, area, small_gridsize, img_height, img_width, resolution)
 
     Sv, PI, PII, Na, crack_length = crack_statistics_in_windows(img, img_height, img_width, large_gridsize, grid_hor,
-                                                            grid_ver, small_gridsize, resolution)
+                                                                grid_ver, small_gridsize, resolution)
 
     return Sv, PI, PII, Na, crack_length
 
 
 def plot_crack_statistics(X, img_width, img_height, resolution, colorbar_label=None, output_filepath=None):
-
     plt.figure(figsize=(8 / 2.54, 7 / 2.54))  # Show image, grids and intersections
     ax = plt.imshow(X, extent=[0, img_width / resolution, 0, img_height / resolution], cmap=cm.YlOrRd)  # Show image
     plt.xlabel('mm')
@@ -216,8 +233,14 @@ def plot_crack_statistics(X, img_width, img_height, resolution, colorbar_label=N
 
 
 def plot_image_with_grid_overlay(filepath, small_grid, large_grid, output_filepath=None):
-
-    #filename = './output/img13.png'
+    """
+    Args:
+    filepath (string): filepath of image to plot grid over
+    small_grid (NumPy array): small grid array
+    large_grid (NumPy array): large grid array
+    output_filepath (string): filepath of output image of graph (can be .png, .svg ...)
+    """
+    # filename = './output/img13.png'
     img_labelled = matplotlib.image.imread(filepath)  # Load crack image
 
     # Overlay grid on labelled crack image
