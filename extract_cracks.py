@@ -315,7 +315,7 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
 
     # Plot original and final image
     f, ax = plt.subplots(1, 2, sharex=True, sharey=True)
-    ax[0].imshow(img, cmap='gray')
+    ax[0].imshow(img_orig, cmap='gray')
     ax[1].imshow(cracks_skeleton_restored, cmap='gray')
     plt.show()
     
@@ -325,7 +325,7 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     save_image(255 - img_median)
     save_image(255 - img_filtered)
     
-    save_image(255 * ele    vation_map / np.max(elevation_map))
+    save_image(255 * elevation_map / np.max(elevation_map))
     save_image(255 * segmented / np.max(segmented))
     save_image(255 * cracks / np.max(cracks))
     save_image(255 * cracks_skeleton / np.max(cracks_skeleton))
