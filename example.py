@@ -11,12 +11,12 @@ resolution = np.floor(1000 * 261. / 526)  # resolution of example image
 
 # Process image
 final = extract_cracks.processImage(filepath,
-                                    median_filter_size=20,
-                                    small_object_size=30,
-                                    fill_small_holes_n_iterations=3,
-                                    n_prune=20,
-                                    bg_greyscale=254,
-                                    crack_greyscale=249)
+                                    median_filter_size=12,
+                                    small_object_size=20,
+                                    fill_small_holes_n_iterations=2,
+                                    n_prune=10,
+                                    bg_greyscale=252,
+                                    crack_greyscale=240)
 
 # image height in pixels
 img_height = final.shape[0]
