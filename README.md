@@ -24,7 +24,7 @@ Make sure the following are installed:
 
 ### Description
 
-The processing is split into two scripts:
+The processing is split into two modules:
 
 * extract_cracks.py: segmentation of the input image to create a binary image of pixel-thick cracks
 * count_cracks.py: crack lengths and their spatial densities are calculated from the binary image. These values are provided both globally for the whole image, and within multiple windows, to assess their spatial variability.
@@ -33,7 +33,7 @@ Images are saved in ./output at each stage of the processing.
 
 ### Example
 
-Run the example:
+Run the example script:
 
 'example.py' demonstrates the image processing on an example file located at '/input/example_micrograph.png', using the default parameters.
 
