@@ -22,12 +22,15 @@ Make sure the following are installed:
 * skimage
 * PIL (Pillow)
 
-If you are using conda, this can be acheived by making an environment from the 'environment.yml'
+If you are using conda, this can be acheived by making an environment (named crackenv) from the 'environment.yml'
 file
 ```
 conda env create -f environment.yml
 ```
-
+And activate the environment using
+```
+conda activate crackenv
+```
 ### Description
 
 The processing is split into two modules:
