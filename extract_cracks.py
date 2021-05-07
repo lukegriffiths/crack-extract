@@ -8,7 +8,6 @@ from scipy import ndimage as ndi
 from skimage import filters
 import mahotas as mh
 import matplotlib as mpl
-from PIL import Image
 
 # %% Parameters
 # Color map
@@ -276,8 +275,15 @@ def processImage(filepath, median_filter_size=15, small_object_size=40, fill_sma
     """
 
     # img_orig = np.uint8( scipy.misc.imread(filename, flatten = True) )
-    image = Image.open(filepath).convert('L')
-    img_orig = np.uint8(image)
+    #image = Image.open(filepath).convert('L')
+    #image.convert('grayscale')
+    
+    from skimage.color import rgb2gray
+    from skimage import io
+    from skimage.util import img_as_ubyte
+    img = io.imread(filepath)
+    img_gray = rgb2gray(img)
+    img_orig = img_as_ubyte(img_gray)
     
     # img = img[2:-2, 2:-2] # Microscope image borders are all same grayscale
     # img = img[760:780, 923:977]
