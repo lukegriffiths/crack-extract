@@ -1,0 +1,21 @@
+# To make environment using conda
+# conda env create -f environment.yml
+# then activate the environment with
+# conda activate crackenv
+
+name: crackenv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - opencv
+  - matplotlib
+  - numpy
+  - scipy
+  - scikit-image
+  - mahotas
+  - pillow
+  - ipykernel
+
+
