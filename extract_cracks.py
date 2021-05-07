@@ -226,6 +226,7 @@ def orderByCrackLength(img, res):  # res in pix/mm
 
 
 def save_image(img, filepath=None, cmap='gray'):
+    from PIL import Image
     save_image.counter += 1  # increment each time function is called
 
     if filepath is None:
